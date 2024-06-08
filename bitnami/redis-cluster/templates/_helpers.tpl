@@ -257,3 +257,53 @@ redis-cluster: tls.enabled
     enable auto-generated certificates.
 {{- end -}}
 {{- end -}}
+
+{{/* Fetches data content from a configmap */}}
+{{- define "redis-cluster.getConfigMapData" -}}
+{{- $name := .name }}
+{{- $ns := default .Release.Namespace .namespace }}
+{{- $data := dict }}
+{{- with (lookup "v1" "ConfigMap" $ns $name) }}
+{{- range $key, $value := .data }}
+{{- $data = $data | merge (dict $key $value) }}
+{{- end }}
+{{- end }}
+{{- $data }}
+{{- end }}
+
+{{/* Fetches data content form a secret */}}
+{{- define "redis-cluster.getSecretData" -}}
+{{- $name := .name }}
+{{- $ns := default .Release.Namespace .namespace }}
+{{- $data := dict }}
+{{- with (lookup "v1" "Secret" $ns $name) }}
+{{- range $key, $value := .data }}
+{{- $decodedValue := $value | b64dec }}
+{{- $data = $data | merge (dict $key $decodedValue) }}
+{{- end }}
+{{- end }}
+{{- $data }}
+{{- end }}
+
+{{/* Merges data from all defined configmaps and/or secrets and removes duplicated data */}}
+{{- define "mergeConfigMapsAndSecrets" -}}
+{{- $merged := dict }}
+{{- if .Values.redis.defaultConfigOverrideCM }}
+  {{- range .Values.redis.defaultConfigOverrideCM }}
+  {{- $merged = $merged | merge (include "getConfigMapData" (dict "name" .name)) }}
+  {{- end }}
+{{- end }}
+{{- if .Values.redis.defaultConfigOverrideSecret }}
+  {{- range .Values.redis.defaultConfigOverrideSecret }}
+  {{- $merged = $merged | merge (include "getSecretData" (dict "name" .name)) }}
+  {{- end }}
+{{- end }}
+
+{{- $unique := dict }}
+{{- range $key, $value := $merged }}
+{{- if not (hasKey $unique $key) }}
+{{- $unique = $unique | merge (dict $key $value) }}
+{{- end }}
+{{- end }}
+{{- $unique }}
+{{- end }}

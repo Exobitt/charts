@@ -559,6 +559,20 @@ redis:
   ## ref: https://redis.io/topics/config
   ##
   defaultConfigOverride: ""
+  ## @param redis.defaultConfigOverrideCM Optional default Redis&reg from a configmap; configuration for the nodes
+  ## If not set, the default Redis configuration from the chart is used
+  ## ref: https://redis.io/topics/config
+  ##
+  defaultConfigOverrideCM: ""
+  ## @param redis.defaultConfigOverrideSecret Optional default Redis&reg from a secret; configuration for the nodes
+  ## If not set, the default Redis configuration from the chart is used
+  ## ref: https://redis.io/topics/config
+  ##
+  defaultConfigOverrideSecret: ""
+  ## @param redis.useConfigSecret Use secret instead of configmap
+  ## If not set redis.conf will remain a configmap
+  ##
+  useConfigSecret: false
   ## @param redis.configmap Additional Redis&reg; configuration for the nodes
   ## ref: https://redis.io/topics/config
   ##
